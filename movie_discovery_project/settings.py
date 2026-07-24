@@ -1,9 +1,15 @@
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-dev-key"
 DEBUG = True
-ALLOWED_HOSTS = []
+
+if os.getenv("VERCEL"):
+    ALLOWED_HOSTS = ["127.0.0.1", "localhost", ".vercel.app", ".app.github.dev"]
+    CSRF_TRUSTED_ORIGINS = ["https://*.vercel.app", "https://*.app.github.dev"]
+else:
+    ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
