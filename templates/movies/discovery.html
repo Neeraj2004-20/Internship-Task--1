@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Movie Discovery</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background: #f4f6f9; color: #1f2937; }
+        .container { max-width: 1180px; margin: 0 auto; padding: 24px; }
+        .hero { background: linear-gradient(135deg, #111827, #4f46e5); color: white; padding: 24px; border-radius: 16px; }
+        form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 16px; }
+        .card { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+        .movie-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 20px; }
+        .pill { display: inline-block; background: #eef2ff; color: #4338ca; padding: 4px 8px; border-radius: 999px; font-size: 12px; margin-right: 6px; margin-top: 6px; }
+        .controls { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .pagination a, .pagination span { margin-right: 8px; }
+        .recommendations { margin-top: 28px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="hero">
+        <h1>Movie Discovery</h1>
+        <p>Search, filter, and discover the best movies for your next outing.</p>
+        <div class="card">
+            <div class="controls">
+                <strong>{{ total_count }} matching movies</strong>
+                <span>Sorted by {{ selected.sort_by|default:"popularity" }}</span>
+            </div>
+            <form method="get">
+                <input type="text" name="q" placeholder="Search title" value="{{ selected.q }}" />
+                <select name="genre">
+                    <option value="">All genres</option>
+                    {% for genre in genres %}<option value="{{ genre }}" {% if selected.genre == genre %}selected{% endif %}>{{ genre }}</option>{% endfor %}
+                </select>
+                <select name="language">
+                    <option value="">All languages</option>
+                    {% for language in languages %}<option value="{{ language }}" {% if selected.language == language %}selected{% endif %}>{{ language }}</option>{% endfor %}
+                </select>
+                <select name="city">
+                    <option value="">All cities</option>
+                    {% for city in cities %}<option value="{{ city }}" {% if selected.city == city %}selected{% endif %}>{{ city }}</option>{% endfor %}
+                </select>
+                <select name="theater">
+                    <option value="">All theaters</option>
+                    {% for theater in theaters %}<option value="{{ theater }}" {% if selected.theater == theater %}selected{% endif %}>{{ theater }}</option>{% endfor %}
+                </select>
+                <input type="date" name="release_date" value="{{ selected.release_date }}" />
+                <select name="rating">
+                    <option value="">Min rating</option>
+                    <option value="7" {% if selected.rating == '7' %}selected{% endif %}>7+</option>
+                    <option value="8" {% if selected.rating == '8' %}selected{% endif %}>8+</option>
+                    <option value="9" {% if selected.rating == '9' %}selected{% endif %}>9+</option>
+                </select>
+                <input type="text" name="show_time" placeholder="e.g. 19:30" value="{{ selected.show_time }}" />
+                <select name="sort_by">
+                    <option value="popularity" {% if selected.sort_by == 'popularity' %}selected{% endif %}>Popularity</option>
+                    <option value="newest" {% if selected.sort_by == 'newest' %}selected{% endif %}>Newest</option>
+                    <option value="rating" {% if selected.sort_by == 'rating' %}selected{% endif %}>Rating</option>
+                    <option value="price" {% if selected.sort_by == 'price' %}selected{% endif %}>Ticket price</option>
+                </select>
+                <button type="submit">Apply</button>
+            </form>
+        </div>
+    </div>
+
+    <section class="movie-grid">
+        {% for movie in movies %}
+        <article class="card">
+            <h3>{{ movie.title }}</h3>
+            <p>{{ movie.genre }} • {{ movie.language }} • {{ movie.theater.city }}</p>
+            <p><strong>Release:</strong> {{ movie.release_date }}</p>
+            <p><strong>Rating:</strong> {{ movie.rating }} / 10</p>
+            <p><strong>Ticket:</strong> ₹{{ movie.ticket_price }}</p>
+            <p><strong>Showtimes:</strong> {% for time in movie.show_timings %}<span class="pill">{{ time }}</span>{% endfor %}</p>
+            <p><strong>Theater:</strong> {{ movie.theater.name }}</p>
+        </article>
+        {% empty %}
+        <p>No movies matched your filters.</p>
+        {% endfor %}
+    </section>
+
+    <div class="pagination">
+        {% if movies.has_previous %}<a href="?page={{ movies.previous_page_number }}{% for key, value in selected.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Previous</a>{% endif %}
+        <span>Page {{ movies.number }} of {{ movies.paginator.num_pages }}</span>
+        {% if movies.has_next %}<a href="?page={{ movies.next_page_number }}{% for key, value in selected.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next</a>{% endif %}
+    </div>
+
+    <section class="recommendations">
+        <h2>Recommended for You</h2>
+        <div class="movie-grid">
+            {% for recommendation in recommendations %}
+            <article class="card">
+                <h3>{{ recommendation.title }}</h3>
+                <p>{{ recommendation.genre }} • {{ recommendation.language }}</p>
+                <p>Based on your recent activity</p>
+            </article>
+            {% empty %}
+            <p>No recommendations yet.</p>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+</body>
+</html>
